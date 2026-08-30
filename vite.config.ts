@@ -5,6 +5,7 @@ import { defineConfig } from "vite"
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/Motibilis/", // Add this line with leading and trailing slashes
   plugins: [react()],
   server: {
     port: 3000,
