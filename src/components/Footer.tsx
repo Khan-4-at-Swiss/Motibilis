@@ -3,7 +3,7 @@ import { Linkedin, Mail, Instagram, Sparkles } from 'lucide-react'
 export default function Footer() {
   const footerText = 'Created by Shaikh, initial part of Bahria Buddy project that\'s actively evolving to Yuni Buddy'
   const socialLinks = [
-    { icon: <Linkedin className="w-5 h-5" />, url: 'jadsf;adsfj;dl', label: 'LinkedIn' },
+    { icon: <Linkedin className="w-5 h-5" />, url: 'https://www.linkedin.com', label: 'LinkedIn' },
     { icon: <Mail className="w-5 h-5" />, url: 'mailto:sheikhafaqahmad786@gmail.com', label: 'Email' },
     { icon: <Instagram className="w-5 h-5" />, url: 'https://www.instagram.com/motibilis_/?__pwa=1#', label: 'Instagram' },
   ]
@@ -30,6 +30,7 @@ export default function Footer() {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label={link.label}
               title={link.label}
               className="text-[#888] hover:text-[#D4AF37] transition-all duration-300 hover:scale-110"
             >

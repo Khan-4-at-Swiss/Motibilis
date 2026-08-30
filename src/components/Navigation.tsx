@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 
 export default function Navigation() {
@@ -42,8 +42,9 @@ export default function Navigation() {
           {/* Logo */}
           <Link to="/home" className="flex items-center gap-3 group">
             <div className="relative w-10 h-10 spin-slow">
+              {/* ✅ Fixed path using ./ instead of / */}
               <img
-                src="/images/motibilis.jpg"
+                src="./images/motibilis.jpg"
                 alt="Motibilis"
                 className="w-full h-full object-cover rounded-full border border-[#D4AF37]/30"
               />
@@ -53,7 +54,7 @@ export default function Navigation() {
             </span>
           </Link>
 
-          {/* Desktop Public Links (NO ADMIN LOGIN LINK VISIBLE) */}
+          {/* Desktop Public Links */}
           <div className="hidden md:flex items-center gap-8">
             <button
               onClick={scrollToCategories}
