@@ -6,6 +6,9 @@ import Footer from '@/components/Footer'
 import { getCategories, getProducts } from '@/data/store'
 import { ArrowRight, Sparkles, Package, Clock, ExternalLink } from 'lucide-react'
 
+// Automatically handles local vs GitHub Pages base path
+const base = import.meta.env.BASE_URL || '/'
+
 export default function Home() {
   const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -62,7 +65,7 @@ export default function Home() {
         <div className="fixed inset-0 z-0">
           <video
             ref={videoRef}
-            src="/videos/motibilis.mp4"
+            src={`${base}videos/motibilis.mp4`}
             className="w-full h-full object-cover"
             muted
             playsInline
@@ -81,7 +84,7 @@ export default function Home() {
           <div className="relative mb-8">
             <div className="w-32 h-32 md:w-40 md:h-40 spin-slow rounded-full p-1 bg-gradient-to-br from-[#D4AF37]/30 to-black">
               <img
-                src="/images/motibilis.jpg"
+                src={`${base}images/motibilis.jpg`}
                 alt="Motibilis"
                 className="w-full h-full object-cover rounded-full border-2 border-[#D4AF37]/30 shadow-2xl"
                 style={{
@@ -166,7 +169,13 @@ export default function Home() {
                   {/* Category Image */}
                   <div className="h-40 overflow-hidden relative">
                     <img
-                      src={category.imageUrl || '/images/motibilis.jpg'}
+                      src={
+                        category.imageUrl
+                          ? category.imageUrl.startsWith('http')
+                            ? category.imageUrl
+                            : `${base}${category.imageUrl.replace(/^\//, '')}`
+                          : `${base}images/motibilis.jpg`
+                      }
                       alt={category.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-60 group-hover:opacity-80"
                     />

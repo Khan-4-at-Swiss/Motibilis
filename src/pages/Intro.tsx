@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router'
 
+// Automatically handles local vs GitHub Pages base path
+const base = import.meta.env.BASE_URL || '/'
+
 export default function Intro() {
   const navigate = useNavigate()
   const [phase, setPhase] = useState<'pop' | 'loading' | 'done'>('pop')
@@ -49,7 +52,7 @@ export default function Intro() {
         <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-2 border-[#D4AF37]/40 shadow-2xl p-1 bg-gradient-to-br from-[#D4AF37]/20 to-black">
           <img
             ref={swordRef}
-            src="/images/motibilis.jpg"
+            src={`${base}images/motibilis.jpg`}
             alt="Motibilis"
             className="w-full h-full object-cover rounded-full drop-shadow-2xl"
             style={{

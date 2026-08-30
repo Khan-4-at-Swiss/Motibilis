@@ -8,6 +8,16 @@ import {
   CheckCircle, Clock, Package, ExternalLink, Cpu, Layers, ShieldCheck
 } from 'lucide-react'
 
+// Automatically handles local vs GitHub Pages base path
+const base = import.meta.env.BASE_URL || '/'
+
+// Helper to format asset paths cleanly
+const resolveAssetPath = (path: string) => {
+  if (!path) return `${base}images/motibilis.jpg`
+  if (path.startsWith('http')) return path
+  return `${base}${path.replace(/^\//, '')}`
+}
+
 export default function ProductPage() {
   const params = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -42,7 +52,12 @@ export default function ProductPage() {
     )
   }
 
-  const screenshots = product.screenshots || ['/images/motibilis.jpg']
+  // Map all screenshots through the base path fixer
+  const rawScreenshots = product.screenshots && product.screenshots.length > 0 
+    ? product.screenshots 
+    : ['images/motibilis.jpg']
+  
+  const screenshots = rawScreenshots.map(resolveAssetPath)
 
   const handlePrevMedia = () => {
     setCurrentMedia((prev) => (prev === 0 ? screenshots.length - 1 : prev - 1))
