@@ -1,4 +1,5 @@
-import { useNavigate } from 'react'
+// ✅ CORRECT
+import { useNavigate } from 'react-router-dom'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import Starfield from '@/components/Starfield'
@@ -20,7 +21,7 @@ export default function NotFound() {
           The software showcase page you are looking for does not exist or has been moved.
         </p>
         <button
-          onClick={() => navigate('/home')}
+          onClick={() => navigate('/')}
           className="btn-primary inline-flex items-center gap-2 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
