@@ -32,19 +32,18 @@ export default function Navigation() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
             ? 'bg-[rgba(10,8,12,0.9)] backdrop-blur-xl border-b border-[rgba(212,175,55,0.1)]'
             : 'bg-transparent'
-        }`}
+          }`}
       >
         <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/home" className="flex items-center gap-3 group">
             <div className="relative w-10 h-10 spin-slow">
-              {/* ✅ Fixed path using ./ instead of / */}
+              {/* ✅ Points to the 'images' folder */}
               <img
-                src="./images/motibilis.jpg"
+                src={`${import.meta.env.BASE_URL}images/motibilis.jpg`}
                 alt="Motibilis"
                 className="w-full h-full object-cover rounded-full border border-[#D4AF37]/30"
               />
