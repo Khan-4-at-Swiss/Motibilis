@@ -11,6 +11,9 @@ export interface Product {
   sortOrder: number;
 }
 
+// Automatically handles local vs GitHub Pages base path
+const base = import.meta.env.BASE_URL || '/';
+
 export const products: Product[] = [
   // ─── Academic Tools ───
   {
@@ -31,7 +34,7 @@ export const products: Product[] = [
       "Mobile responsive design",
     ],
     websiteUrl: "https://khan-4-at-swiss.github.io/Bahria-University-CGPA-GPA-calculator/",
-    screenshots: ["/images/gpa.jpg"],
+    screenshots: [`${base}images/gpa.jpg`],
     sortOrder: 1,
   },
   {
@@ -52,7 +55,7 @@ export const products: Product[] = [
       "100% privacy guaranteed",
     ],
     websiteUrl: "https://motibilis-gladius-xtreme.netlify.app/",
-    screenshots: ["/images/zipper.jpg"],
+    screenshots: [`${base}images/zipper.jpg`],
     sortOrder: 2,
   },
   {
@@ -75,7 +78,7 @@ export const products: Product[] = [
       "And much more!",
     ],
     websiteUrl: "https://motibilis-pdf-infinitevoid.netlify.app/",
-    screenshots: ["/images/pdf.png"],
+    screenshots: [`${base}images/pdf.png`],
     sortOrder: 3,
   },
 
@@ -100,7 +103,7 @@ export const products: Product[] = [
       "REST & GraphQL API for integrations",
     ],
     websiteUrl: "https://motibilis-teardown.netlify.app/",
-    screenshots: ["/images/laptop.jpg"],
+    screenshots: [`${base}images/laptop.jpg`],
     sortOrder: 1,
   },
   {
@@ -119,7 +122,7 @@ export const products: Product[] = [
       "Secure Serverless Proxy",
     ],
     websiteUrl: "https://gotcha-xtreme-motibilis-x275.netlify.app/",
-    screenshots: ["/images/AI.jpg"],
+    screenshots: [`${base}images/AI.jpg`],
     sortOrder: 2,
   },
   {
@@ -141,11 +144,11 @@ export const products: Product[] = [
       "Custom report generator",
     ],
     websiteUrl: "https://github.com/AFAQXMOTIBILIS",
-    screenshots: ["/images/motibilis.jpg"],
+    screenshots: [`${base}images/motibilis.jpg`],
     sortOrder: 3,
   },
 
-  // ─── Developer Tools ───
+  // ─── Developer Tools / Games ───
   {
     id: 7,
     categoryId: 3,
@@ -167,7 +170,7 @@ export const products: Product[] = [
       "Adaptive Layout: Supports both mobile portrait and tablet landscape (split-panel) views."
     ],
     websiteUrl: "https://khan-4-at-swiss.github.io/motibilis-ludo/",
-    screenshots: ["/images/ludo.jpg"],
+    screenshots: [`${base}images/ludo.jpg`],
     sortOrder: 1,
   },
   {
@@ -186,7 +189,7 @@ export const products: Product[] = [
       "Interactive Landing Page: Cinematic scroll-synced video and direct APK download delivery.",
     ],
     websiteUrl: "https://github.com/AFAQXMOTIBILIS",
-    screenshots: ["/images/ludoo.jpeg"],
+    screenshots: [`${base}images/ludoo.jpeg`],
     sortOrder: 2,
   },
   {
@@ -201,10 +204,12 @@ export const products: Product[] = [
       "Humanistic & Warm User Interface: Warm organic color palette (terracotta, olive sage, amber, cream), Dynamic, time aware greeting based on local time, Continuous 2D clockwise rotating Motibilis emblem, Clean, readable typography using Plus Jakarta Sans and Outfit",
       "Built-in Sound & Haptics Synthesizer: Zero external audio dependencies: generates tones dynamically via the Web Audio API, Individual frequencies for game actions (clicks, pops, bounces, jump wooshes, win jingles), Real-time device vibration feedback on Android phones",
       "Offline & Zero Battery Drain: All games run 100% offline without needing internet, High scores and win streaks are saved in local storage",
-      "Complete Game Lineup (11 Games): Tic Tac Toe (Flagship): 4 AI difficulty levels: Noob, Casual, Hard, and Grandmaster (unbeatable Minimax), Local 2-Player Pass and Play mode, Visual line highlights and celebratory fanfare, Brick Breaker (Breakout Deluxe): Paddle drag controls, multi-tier colorful bricks, score multipliers, and a 3 lives system, Connect 4 (4 in a Row): Gravity falling discs, tactical AI with win/block detection, and 2-player mode", "Snake Retro: Touch swipe gestures plus virtual on-screen D-pad, food item glows, and speed scaling, 2048 Ultra: Smooth numerical tile sliding and merging with swipe and keyboard controls, Memory Match: 3D flipping card pairs with 4x4 and 6x4 layouts, active timer, and move counter, Pong Battle: Fluid touch paddle tracking with ball spin deflection against an adaptive AI, Minesweeper Sweeper Pro: Guaranteed safe first click, Dig Mode vs Flag Mode toggle buttons for mobile, and recursive empty reveal", "Whack-a-Mole (Tap Frenzy): 30-second rapid challenge with animated moles and score counters, Simon Rhythm: 4-pad sequence memory with matching musical notes (C4, E4, G4, C5), Flappy Flight: Tap to glide physics, obstacle pipes, and score gates",
+      "Complete Game Lineup (11 Games): Tic Tac Toe (Flagship): 4 AI difficulty levels: Noob, Casual, Hard, and Grandmaster (unbeatable Minimax), Local 2-Player Pass and Play mode, Visual line highlights and celebratory fanfare, Brick Breaker (Breakout Deluxe): Paddle drag controls, multi-tier colorful bricks, score multipliers, and a 3 lives system, Connect 4 (4 in a Row): Gravity falling discs, tactical AI with win/block detection, and 2-player mode", 
+      "Snake Retro: Touch swipe gestures plus virtual on-screen D-pad, food item glows, and speed scaling, 2048 Ultra: Smooth numerical tile sliding and merging with swipe and keyboard controls, Memory Match: 3D flipping card pairs with 4x4 and 6x4 layouts, active timer, and move counter, Pong Battle: Fluid touch paddle tracking with ball spin deflection against an adaptive AI, Minesweeper Sweeper Pro: Guaranteed safe first click, Dig Mode vs Flag Mode toggle buttons for mobile, and recursive empty reveal",
+      "Whack-a-Mole (Tap Frenzy): 30-second rapid challenge with animated moles and score counters, Simon Rhythm: 4-pad sequence memory with matching musical notes (C4, E4, G4, C5), Flappy Flight: Tap to glide physics, obstacle pipes, and score gates",
     ],
     websiteUrl: "https://drive.google.com/uc?export=download&id=1dGpr7nsnNuDTFYRSwJzjbUAW1cH7Ek-b",
-    screenshots: ["/images/kimmm.jpg"],
+    screenshots: [`${base}images/kimmm.jpg`],
     sortOrder: 3,
   },
 ];

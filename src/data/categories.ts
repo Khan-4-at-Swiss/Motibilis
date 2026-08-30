@@ -6,13 +6,16 @@ export interface Category {
   sortOrder: number;
 }
 
+// Automatically handles local vs GitHub Pages base path
+const base = import.meta.env.BASE_URL || '/';
+
 export const categories: Category[] = [
   {
     id: 1,
     name: "Academic Tools",
     description:
       "Powerful software solutions designed for students, educators, and academic institutions. Streamline research, manage coursework, and enhance learning experiences.",
-    imageUrl: "/images/academic.jpg",
+    imageUrl: `${base}images/academic.jpg`,
     sortOrder: 1,
   },
   {
@@ -20,7 +23,7 @@ export const categories: Category[] = [
     name: "Professional Tools",
     description:
       "Enterprise-grade productivity software for businesses and professionals. Automate workflows, manage projects, and boost team efficiency.",
-    imageUrl: "/images/professional.jpg",
+    imageUrl: `${base}images/professional.jpg`,
     sortOrder: 2,
   },
   {
@@ -28,7 +31,7 @@ export const categories: Category[] = [
     name: "Games",
     description:
       "Games that can be played by anyone, regardless of their technical expertise.",
-    imageUrl: "/images/games.jpg",
+    imageUrl: `${base}images/games.jpg`,
     sortOrder: 3,
   },
 ];
