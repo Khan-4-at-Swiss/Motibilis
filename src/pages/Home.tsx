@@ -1,22 +1,22 @@
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Navigation from '@/components/Navigation'
 import Starfield from '@/components/Starfield'
 import Footer from '@/components/Footer'
-import { getCategories, getProducts } from '@/data/store'
-import { ArrowRight, Sparkles, Package, Clock, ExternalLink } from 'lucide-react'
-
-// Automatically handles local vs GitHub Pages base path
-const base = import.meta.env.BASE_URL || '/'
+import { getCategories, getProducts, type Category, type Product } from '@/data/store'
+import { getAssetUrl } from '@/lib/assets'
+import { ArrowRight, Sparkles, Package, Clock, ExternalLink, CheckCircle } from 'lucide-react'
 
 export default function Home() {
   const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement>(null)
   const heroRef = useRef<HTMLDivElement>(null)
   const [heroVisible, setHeroVisible] = useState(true)
+  const [videoLoaded, setVideoLoaded] = useState(false)
 
-  const [categoriesList, setCategoriesList] = useState(() => getCategories())
-  const [productsList, setProductsList] = useState(() => getProducts())
+  const [categoriesList, setCategoriesList] = useState<Category[]>(() => getCategories())
+  const [productsList, setProductsList] = useState<Product[]>(() => getProducts())
+  const [selectedCategoryTab, setSelectedCategoryTab] = useState<number | 'all'>('all')
 
   useEffect(() => {
     const handleDataChange = () => {
@@ -27,72 +27,113 @@ export default function Home() {
     return () => window.removeEventListener('motibilis_data_changed', handleDataChange)
   }, [])
 
-  // Scroll-reversed video
+  // Optimized Scroll-synchronized video scrubber
+  const handleScroll = useCallback(() => {
+    const video = videoRef.current
+    const scrollTop = window.scrollY
+    setHeroVisible(scrollTop < 400)
+
+    if (!video || !video.duration || isNaN(video.duration) || !isFinite(video.duration)) return
+
+    window.requestAnimationFrame(() => {
+      try {
+        const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1000)
+        const progress = Math.min(Math.max(scrollTop / (maxScroll * 0.4), 0), 1)
+        // Reverse scrubbing from end to start, or scrub dynamically
+        const targetTime = (1 - progress) * video.duration
+        if (Math.abs(video.currentTime - targetTime) > 0.1) {
+          video.currentTime = targetTime
+        }
+      } catch {
+        // Ignore video seek errors during fast scroll
+      }
+    })
+  }, [])
+
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
-    video.pause()
-    video.currentTime = 0
-
-    const handleScroll = () => {
-      if (!video || !video.duration) return
-      const scrollTop = window.scrollY
-      const maxScroll = document.body.scrollHeight - window.innerHeight
-      const progress = Math.min(scrollTop / (maxScroll * 0.5), 1)
-      video.currentTime = (1 - progress) * video.duration
-
-      setHeroVisible(scrollTop < 300)
+    const onLoadedMetadata = () => {
+      setVideoLoaded(true)
+      video.pause()
+      if (video.duration && isFinite(video.duration)) {
+        video.currentTime = video.duration
+      }
     }
 
+    video.addEventListener('loadedmetadata', onLoadedMetadata)
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+
+    return () => {
+      video.removeEventListener('loadedmetadata', onLoadedMetadata)
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [handleScroll])
 
   const scrollToCategories = () => {
     const el = document.getElementById('categories-section')
     if (el) el.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const filteredProducts =
+    selectedCategoryTab === 'all'
+      ? productsList
+      : productsList.filter((p) => p.categoryId === selectedCategoryTab)
+
   return (
-    <div className="relative min-h-screen bg-black">
+    <div className="relative min-h-screen bg-black text-white">
       <Navigation />
       <Starfield />
 
       {/* Video Background Hero */}
       <div ref={heroRef} className="relative h-[200vh]">
-        {/* Fixed video layer */}
-        <div className="fixed inset-0 z-0">
+        {/* Fixed video / poster background layer */}
+        <div className="fixed inset-0 z-0 overflow-hidden">
+          {/* Fallback poster image with blur */}
+          <img
+            src={getAssetUrl('images/motibilis.jpg')}
+            alt="Motibilis Atmosphere"
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+              videoLoaded ? 'opacity-20' : 'opacity-40'
+            }`}
+            style={{ filter: 'brightness(0.3) blur(20px)' }}
+          />
+
           <video
             ref={videoRef}
-            src={`${base}videos/motibilis.mp4`}
-            className="w-full h-full object-cover"
+            src={getAssetUrl('videos/motibilis.mp4')}
+            poster={getAssetUrl('images/motibilis.jpg')}
+            className={`w-full h-full object-cover transition-opacity duration-1000 ${
+              videoLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
             muted
             playsInline
             preload="auto"
             style={{ filter: 'brightness(0.4) contrast(1.2)' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/95" />
         </div>
 
         {/* Hero Content - First viewport */}
         <div
-          className="sticky top-0 h-screen flex flex-col items-center justify-center z-[2] transition-opacity duration-500"
+          className="sticky top-0 h-screen flex flex-col items-center justify-center z-[2] transition-opacity duration-500 px-4"
           style={{ opacity: heroVisible ? 1 : 0 }}
         >
           {/* Animated Logo */}
           <div className="relative mb-8">
-            <div className="w-32 h-32 md:w-40 md:h-40 spin-slow rounded-full p-1 bg-gradient-to-br from-[#D4AF37]/30 to-black">
+            <div className="w-32 h-32 md:w-40 md:h-40 spin-slow rounded-full p-1 bg-gradient-to-br from-[#D4AF37]/40 to-black shadow-2xl">
               <img
-                src={`${base}images/motibilis.jpg`}
+                src={getAssetUrl('images/motibilis.jpg')}
                 alt="Motibilis"
-                className="w-full h-full object-cover rounded-full border-2 border-[#D4AF37]/30 shadow-2xl"
+                className="w-full h-full object-cover rounded-full border-2 border-[#D4AF37]/40 shadow-2xl"
                 style={{
-                  filter: 'drop-shadow(0 0 20px rgba(212, 175, 55, 0.4))',
+                  filter: 'drop-shadow(0 0 25px rgba(212, 175, 55, 0.5))',
                 }}
               />
             </div>
-            <div className="absolute inset-[-20px] border border-[#D4AF37]/10 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
+            <div className="absolute inset-[-15px] border border-[#D4AF37]/20 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
+            <div className="absolute inset-[-30px] border border-[#D4AF37]/10 rounded-full animate-[spin_25s_linear_infinite]" />
           </div>
 
           {/* Title */}
@@ -101,19 +142,19 @@ export default function Home() {
           </h1>
 
           {/* Subtitle */}
-          <p className="font-inter text-sm md:text-base text-[#C0C0C0] tracking-[0.5em] uppercase mt-4 text-center">
+          <p className="font-inter text-xs md:text-sm text-[#C0C0C0] tracking-[0.5em] uppercase mt-4 text-center">
             Academic &amp; Professional Tools Showcase
           </p>
 
           {/* Stats Row */}
-          <div className="flex items-center gap-8 mt-8">
+          <div className="flex items-center gap-8 mt-8 bg-black/40 backdrop-blur-md px-8 py-3 rounded-full border border-[#D4AF37]/20">
             <div className="text-center">
-              <p className="font-cinzel text-2xl text-[#D4AF37]">{categoriesList.length}</p>
+              <p className="font-cinzel text-2xl text-[#D4AF37] font-bold">{categoriesList.length}</p>
               <p className="text-[10px] text-[#888] uppercase tracking-widest">Categories</p>
             </div>
-            <div className="w-[1px] h-8 bg-[#D4AF37]/20" />
+            <div className="w-[1px] h-8 bg-[#D4AF37]/30" />
             <div className="text-center">
-              <p className="font-cinzel text-2xl text-[#D4AF37]">{productsList.length}</p>
+              <p className="font-cinzel text-2xl text-[#D4AF37] font-bold">{productsList.length}</p>
               <p className="text-[10px] text-[#888] uppercase tracking-widest">Software Tools</p>
             </div>
           </div>
@@ -121,13 +162,13 @@ export default function Home() {
           {/* Scroll Indicator */}
           <button
             onClick={scrollToCategories}
-            className="absolute bottom-12 flex flex-col items-center gap-2 group cursor-pointer"
+            className="absolute bottom-10 flex flex-col items-center gap-2 group cursor-pointer"
           >
             <span className="text-[10px] text-[#888] uppercase tracking-[0.3em] group-hover:text-[#D4AF37] transition-colors">
               Explore Showcase
             </span>
-            <div className="w-6 h-10 border border-[#D4AF37]/30 rounded-full flex justify-center pt-2">
-              <div className="w-1 h-2 bg-[#D4AF37] rounded-full animate-bounce" />
+            <div className="w-6 h-10 border border-[#D4AF37]/40 rounded-full flex justify-center pt-2 group-hover:border-[#D4AF37] transition-colors">
+              <div className="w-1.5 h-2.5 bg-[#D4AF37] rounded-full animate-bounce" />
             </div>
           </button>
         </div>
@@ -163,23 +204,17 @@ export default function Home() {
                 className="group relative cursor-pointer"
                 style={{ animationDelay: `${i * 100}ms` }}
               >
-                <div className="relative bg-gradient-to-br from-[#15121A] to-[#0A080C] border border-[#D4AF37]/10 rounded-lg overflow-hidden transition-all duration-500 hover:border-[#D4AF37]/40 hover:scale-[1.02] hover:shadow-2xl">
+                <div className="relative bg-gradient-to-br from-[#15121A] to-[#0A080C] border border-[#D4AF37]/15 rounded-lg overflow-hidden transition-all duration-500 hover:border-[#D4AF37]/50 hover:scale-[1.02] hover:shadow-2xl">
                   <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/0 to-[#D4AF37]/0 group-hover:from-[#D4AF37]/5 group-hover:to-transparent transition-all duration-500" />
 
                   {/* Category Image */}
-                  <div className="h-40 overflow-hidden relative">
+                  <div className="h-44 overflow-hidden relative">
                     <img
-                      src={
-                        category.imageUrl
-                          ? category.imageUrl.startsWith('http')
-                            ? category.imageUrl
-                            : `${base}${category.imageUrl.replace(/^\//, '')}`
-                          : `${base}images/motibilis.jpg`
-                      }
+                      src={getAssetUrl(category.imageUrl)}
                       alt={category.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-60 group-hover:opacity-80"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70 group-hover:opacity-90"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0A080C] to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0A080C] via-transparent to-transparent" />
                   </div>
 
                   {/* Content */}
@@ -190,16 +225,16 @@ export default function Home() {
                         {category.name}
                       </h3>
                     </div>
-                    <p className="text-sm text-[#888] mb-4 line-clamp-2">
+                    <p className="text-sm text-[#888] mb-6 line-clamp-2 leading-relaxed">
                       {category.description}
                     </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-[#666] uppercase tracking-widest">
-                        {productsList.filter(p => p.categoryId === category.id).length} Software Tools
+                    <div className="flex items-center justify-between pt-3 border-t border-[#D4AF37]/10">
+                      <span className="text-xs text-[#666] uppercase tracking-widest font-mono">
+                        {productsList.filter((p) => p.categoryId === category.id).length} Software Tools
                       </span>
-                      <div className="flex items-center gap-1 text-[#D4AF37] text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
+                      <div className="flex items-center gap-1.5 text-[#D4AF37] text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-8px] group-hover:translate-x-0 font-cinzel font-semibold">
                         Explore
-                        <ArrowRight className="w-3 h-3" />
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </div>
                     </div>
                   </div>
@@ -208,8 +243,103 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Coming Soon Section */}
-          {productsList.some(p => p.status === 'coming_soon') && (
+          {/* Software Showcase Grid with Category Filter Tabs */}
+          <div className="mt-24">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+              <div>
+                <h3 className="font-cinzel text-2xl md:text-3xl font-bold text-white">
+                  All <span className="text-[#D4AF37]">Software Tools</span>
+                </h3>
+                <p className="text-xs text-[#888] mt-1">Direct access to apps, web tools, and repositories</p>
+              </div>
+
+              {/* Category Filter Pills */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSelectedCategoryTab('all')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-inter uppercase tracking-wider transition-all cursor-pointer ${
+                    selectedCategoryTab === 'all'
+                      ? 'bg-[#D4AF37] text-black font-bold shadow-md shadow-[#D4AF37]/20'
+                      : 'bg-[#15121A] text-[#888] hover:text-white border border-[#D4AF37]/20'
+                  }`}
+                >
+                  All ({productsList.length})
+                </button>
+                {categoriesList.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategoryTab(cat.id)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-inter uppercase tracking-wider transition-all cursor-pointer ${
+                      selectedCategoryTab === cat.id
+                        ? 'bg-[#D4AF37] text-black font-bold shadow-md shadow-[#D4AF37]/20'
+                        : 'bg-[#15121A] text-[#888] hover:text-white border border-[#D4AF37]/20'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Products Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  onClick={() => navigate(`/product/${product.id}`)}
+                  className="group relative bg-gradient-to-br from-[#15121A] to-[#0A080C] border border-[#D4AF37]/15 rounded-lg overflow-hidden cursor-pointer hover:border-[#D4AF37]/50 hover:scale-[1.02] transition-all duration-300 shadow-lg"
+                >
+                  {/* Tool Image */}
+                  <div className="h-44 overflow-hidden relative">
+                    <img
+                      src={getAssetUrl(product.screenshots?.[0] || 'images/motibilis.jpg')}
+                      alt={product.name}
+                      className="w-full h-full object-cover opacity-60 group-hover:opacity-85 group-hover:scale-105 transition-all duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0A080C] via-transparent to-transparent" />
+
+                    {/* Status Badge */}
+                    <div className="absolute top-3 right-3">
+                      {product.status === 'coming_soon' ? (
+                        <span className="px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] uppercase tracking-widest rounded-full inline-flex items-center gap-1 backdrop-blur-md border border-[#D4AF37]/30">
+                          <Clock className="w-3 h-3" />
+                          Coming Soon
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 bg-green-500/20 text-green-400 text-[10px] uppercase tracking-widest rounded-full inline-flex items-center gap-1 backdrop-blur-md border border-green-500/30">
+                          <CheckCircle className="w-3 h-3" />
+                          Live
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6">
+                    <h4 className="font-cinzel text-lg font-bold text-white group-hover:text-[#D4AF37] transition-colors mb-2">
+                      {product.name}
+                    </h4>
+                    <p className="text-xs text-[#888] line-clamp-2 mb-4 leading-relaxed">
+                      {product.description}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-[#D4AF37]/10">
+                      <span className="text-[10px] text-[#D4AF37] font-mono uppercase tracking-widest truncate max-w-[150px]">
+                        {product.techStack?.split(',')[0] || 'Software'}
+                      </span>
+                      <div className="flex items-center gap-1 text-xs text-[#D4AF37] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all font-cinzel font-semibold">
+                        View Specs
+                        <ArrowRight className="w-3 h-3" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Upcoming Software Section */}
+          {productsList.some((p) => p.status === 'coming_soon') && (
             <div className="mt-20">
               <div className="flex items-center justify-center gap-3 mb-8">
                 <Clock className="w-5 h-5 text-[#D4AF37]" />
@@ -218,16 +348,15 @@ export default function Home() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {productsList
-                  .filter(p => p.status === 'coming_soon')
-                  .slice(0, 3)
+                  .filter((p) => p.status === 'coming_soon')
                   .map((product) => (
                     <div
                       key={product.id}
                       onClick={() => navigate(`/product/${product.id}`)}
-                      className="relative bg-gradient-to-br from-[#15121A] to-[#0A080C] border border-[#D4AF37]/20 rounded-lg overflow-hidden opacity-80 cursor-pointer hover:opacity-100 hover:border-[#D4AF37]/50 transition-all"
+                      className="relative bg-gradient-to-br from-[#15121A] to-[#0A080C] border border-[#D4AF37]/20 rounded-lg overflow-hidden opacity-85 cursor-pointer hover:opacity-100 hover:border-[#D4AF37]/50 transition-all shadow-xl"
                     >
                       <div className="absolute top-3 right-3">
-                        <span className="px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] uppercase tracking-widest rounded-full pulse-gold">
+                        <span className="px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] uppercase tracking-widest rounded-full pulse-gold border border-[#D4AF37]/30">
                           Coming Soon
                         </span>
                       </div>
@@ -246,21 +375,21 @@ export default function Home() {
       {/* CTA Showcase Section */}
       <section className="relative z-10 bg-black py-20">
         <div className="max-w-[1400px] mx-auto px-6 text-center">
-          <div className="relative bg-gradient-to-br from-[#15121A] to-[#0A080C] border border-[#D4AF37]/20 rounded-lg p-12 overflow-hidden">
-            <div className="absolute top-0 left-0 w-20 h-20 border-t border-l border-[#D4AF37]/20" />
-            <div className="absolute bottom-0 right-0 w-20 h-20 border-b border-r border-[#D4AF37]/20" />
+          <div className="relative bg-gradient-to-br from-[#15121A] to-[#0A080C] border border-[#D4AF37]/20 rounded-lg p-12 overflow-hidden shadow-2xl">
+            <div className="absolute top-0 left-0 w-20 h-20 border-t border-l border-[#D4AF37]/30" />
+            <div className="absolute bottom-0 right-0 w-20 h-20 border-b border-r border-[#D4AF37]/30" />
 
             <h2 className="font-cinzel text-3xl md:text-4xl font-bold text-white mb-4">
               Explore <span className="text-[#D4AF37]">Open Source &amp; Projects</span>
             </h2>
-            <p className="text-[#888] text-sm max-w-lg mx-auto mb-8">
+            <p className="text-[#888] text-sm max-w-lg mx-auto mb-8 leading-relaxed">
               Discover specs, documentations, and live direct links for all Motibilis applications.
             </p>
             <a
               href="https://github.com/AFAQXMOTIBILIS"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary inline-flex items-center gap-2"
+              className="btn-primary inline-flex items-center gap-2 cursor-pointer shadow-xl"
             >
               Visit GitHub Profile
               <ExternalLink className="w-4 h-4" />
