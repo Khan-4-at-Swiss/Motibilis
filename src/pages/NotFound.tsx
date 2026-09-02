@@ -1,4 +1,3 @@
-// ✅ CORRECT
 import { useNavigate } from 'react-router-dom'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
@@ -9,7 +8,7 @@ export default function NotFound() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-black flex flex-col justify-between relative">
+    <div className="min-h-screen bg-black flex flex-col justify-between relative text-white">
       <Navigation />
       <Starfield />
 
@@ -21,7 +20,7 @@ export default function NotFound() {
           The software showcase page you are looking for does not exist or has been moved.
         </p>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/home')}
           className="btn-primary inline-flex items-center gap-2 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />

@@ -1,50 +1,61 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router'
+import { useParams, useNavigate } from 'react-router-dom'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { getProductById, getCategoryById } from '@/data/store'
+import Starfield from '@/components/Starfield'
+import { getProductById, getCategoryById, toggleBookmark, isBookmarked, type Product, type Category } from '@/data/store'
+import { getAssetUrl } from '@/lib/assets'
+import { toast } from 'sonner'
 import {
-  ArrowLeft, ChevronLeft, ChevronRight,
-  CheckCircle, Clock, Package, ExternalLink, Cpu, Layers, ShieldCheck
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+  Clock,
+  Package,
+  ExternalLink,
+  Cpu,
+  Layers,
+  ShieldCheck,
+  Bookmark,
+  Share2,
 } from 'lucide-react'
-
-// Automatically handles local vs GitHub Pages base path
-const base = import.meta.env.BASE_URL || '/'
-
-// Helper to format asset paths cleanly
-const resolveAssetPath = (path: string) => {
-  if (!path) return `${base}images/motibilis.jpg`
-  if (path.startsWith('http')) return path
-  return `${base}${path.replace(/^\//, '')}`
-}
 
 export default function ProductPage() {
   const params = useParams<{ id: string }>()
   const navigate = useNavigate()
   const productId = Number(params.id)
 
-  const [product, setProduct] = useState(() => getProductById(productId))
-  const [category, setCategory] = useState(() => (product ? getCategoryById(product.categoryId) : undefined))
+  const [product, setProduct] = useState<Product | undefined>(() => getProductById(productId))
+  const [category, setCategory] = useState<Category | undefined>(() =>
+    product ? getCategoryById(product.categoryId) : undefined,
+  )
   const [currentMedia, setCurrentMedia] = useState(0)
+  const [bookmarked, setBookmarked] = useState(() => isBookmarked(productId))
 
   useEffect(() => {
     const updateData = () => {
       const p = getProductById(productId)
       setProduct(p)
       if (p) setCategory(getCategoryById(p.categoryId))
+      setBookmarked(isBookmarked(productId))
     }
     updateData()
     window.addEventListener('motibilis_data_changed', updateData)
-    return () => window.removeEventListener('motibilis_data_changed', updateData)
+    window.addEventListener('motibilis_bookmarks_changed', updateData)
+    return () => {
+      window.removeEventListener('motibilis_data_changed', updateData)
+      window.removeEventListener('motibilis_bookmarks_changed', updateData)
+    }
   }, [productId])
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center text-white">
         <div className="text-center">
           <Package className="w-16 h-16 text-[#333] mx-auto mb-4" />
           <p className="text-[#888]">Software specification not found</p>
-          <button onClick={() => navigate('/home')} className="mt-4 btn-primary">
+          <button onClick={() => navigate('/home')} className="mt-4 btn-primary cursor-pointer">
             Back to Home
           </button>
         </div>
@@ -52,12 +63,10 @@ export default function ProductPage() {
     )
   }
 
-  // Map all screenshots through the base path fixer
-  const rawScreenshots = product.screenshots && product.screenshots.length > 0 
-    ? product.screenshots 
+  const screenshots = (product.screenshots && product.screenshots.length > 0
+    ? product.screenshots
     : ['images/motibilis.jpg']
-  
-  const screenshots = rawScreenshots.map(resolveAssetPath)
+  ).map((img) => getAssetUrl(img))
 
   const handlePrevMedia = () => {
     setCurrentMedia((prev) => (prev === 0 ? screenshots.length - 1 : prev - 1))
@@ -67,22 +76,72 @@ export default function ProductPage() {
     setCurrentMedia((prev) => (prev === screenshots.length - 1 ? 0 : prev + 1))
   }
 
+  const handleToggleBookmark = () => {
+    const nextState = toggleBookmark(product.id)
+    setBookmarked(nextState)
+    if (nextState) {
+      toast.success(`${product.name} added to bookmarks`)
+    } else {
+      toast.info(`${product.name} removed from bookmarks`)
+    }
+  }
+
+  const handleShare = () => {
+    try {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(window.location.href)
+        toast.success('Direct link copied to clipboard!')
+      } else {
+        toast.info(window.location.href)
+      }
+    } catch {
+      toast.error('Unable to copy link')
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black text-white relative">
       <Navigation />
+      <Starfield />
 
-      <div className="pt-24 pb-20 px-6">
+      <div className="pt-24 pb-20 px-6 relative z-10">
         <div className="max-w-[1400px] mx-auto">
-          {/* Back Button */}
-          <button
-            onClick={() => navigate(`/category/${product.categoryId}`)}
-            className="flex items-center gap-2 text-sm text-[#888] hover:text-[#D4AF37] transition-colors mb-8 cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Category
-          </button>
+          {/* Top Bar Navigation & Actions */}
+          <div className="flex items-center justify-between mb-8">
+            <button
+              onClick={() => navigate(`/category/${product.categoryId}`)}
+              className="flex items-center gap-2 text-sm text-[#888] hover:text-[#D4AF37] transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to {category?.name || 'Category'}
+            </button>
 
-          {/* Product Detail & Specs */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleToggleBookmark}
+                className={`p-2 rounded-full border transition-all cursor-pointer ${
+                  bookmarked
+                    ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#D4AF37]'
+                    : 'bg-[#15121A] border-[#D4AF37]/20 text-[#888] hover:text-[#D4AF37]'
+                }`}
+                title={bookmarked ? 'Saved in Bookmarks' : 'Bookmark Tool'}
+                aria-label="Bookmark"
+              >
+                <Bookmark className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={handleShare}
+                className="p-2 rounded-full bg-[#15121A] border border-[#D4AF37]/20 text-[#888] hover:text-[#D4AF37] transition-all cursor-pointer"
+                title="Share Tool"
+                aria-label="Share"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Product Detail & Specs Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Media Viewer Showcase */}
             <div>
@@ -97,13 +156,13 @@ export default function ProductPage() {
                   <>
                     <button
                       onClick={handlePrevMedia}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-[#D4AF37]/80 transition-colors"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-[#D4AF37]/80 transition-colors cursor-pointer"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
                     <button
                       onClick={handleNextMedia}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-[#D4AF37]/80 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-[#D4AF37]/80 transition-colors cursor-pointer"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
@@ -111,11 +170,30 @@ export default function ProductPage() {
                 )}
               </div>
 
-              {/* Badges / Tech Summary */}
-              <div className="mt-6 bg-[#0A080C] border border-[#D4AF37]/10 rounded-lg p-4 flex items-center justify-between">
+              {/* Thumbnails if multiple screenshots */}
+              {screenshots.length > 1 && (
+                <div className="flex gap-3 mt-4">
+                  {screenshots.map((s, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentMedia(idx)}
+                      className={`w-20 h-14 rounded overflow-hidden border-2 transition-all cursor-pointer ${
+                        currentMedia === idx ? 'border-[#D4AF37] scale-105' : 'border-[#333] opacity-60'
+                      }`}
+                    >
+                      <img src={s} alt="Thumbnail" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Architecture Badges & Security */}
+              <div className="mt-6 bg-[#0A080C] border border-[#D4AF37]/15 rounded-lg p-4 flex items-center justify-between shadow-lg">
                 <div className="flex items-center gap-2 text-xs text-[#888]">
                   <Cpu className="w-4 h-4 text-[#D4AF37]" />
-                  <span>Architecture: <strong>64-bit / Web</strong></span>
+                  <span>
+                    Architecture: <strong className="text-white">64-bit / Client-Side</strong>
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-[#888]">
                   <ShieldCheck className="w-4 h-4 text-green-400" />
@@ -129,13 +207,13 @@ export default function ProductPage() {
               {/* Status Badge */}
               <div className="mb-4">
                 {product.status === 'coming_soon' ? (
-                  <span className="px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs uppercase tracking-widest rounded-full inline-flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
+                  <span className="px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs uppercase tracking-widest rounded-full inline-flex items-center gap-1.5 border border-[#D4AF37]/30">
+                    <Clock className="w-3.5 h-3.5" />
                     Under Active Development
                   </span>
                 ) : (
-                  <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs uppercase tracking-widest rounded-full inline-flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" />
+                  <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs uppercase tracking-widest rounded-full inline-flex items-center gap-1.5 border border-green-500/30">
+                    <CheckCircle className="w-3.5 h-3.5" />
                     Live &amp; Operational
                   </span>
                 )}
@@ -176,13 +254,13 @@ export default function ProductPage() {
               </div>
 
               {/* Detailed Specifications / Feature List */}
-              <div className="mb-8 bg-gradient-to-br from-[#15121A] to-[#0A080C] border border-[#D4AF37]/15 rounded-lg p-6">
+              <div className="mb-8 bg-gradient-to-br from-[#15121A] to-[#0A080C] border border-[#D4AF37]/15 rounded-lg p-6 shadow-xl">
                 <h3 className="text-xs text-[#D4AF37] uppercase tracking-widest mb-4 font-cinzel">
                   System Specifications &amp; Features
                 </h3>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {product.features?.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-[#C0C0C0]">
+                    <li key={i} className="flex items-start gap-2 text-xs text-[#C0C0C0] leading-relaxed">
                       <CheckCircle className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
                       <span>{feature}</span>
                     </li>
@@ -196,7 +274,7 @@ export default function ProductPage() {
                   href={product.websiteUrl || 'https://github.com/AFAQXMOTIBILIS'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-primary w-full py-4 text-center inline-flex items-center justify-center gap-3 text-base shadow-2xl"
+                  className="btn-primary w-full py-4 text-center inline-flex items-center justify-center gap-3 text-base shadow-2xl cursor-pointer"
                 >
                   <ExternalLink className="w-5 h-5" />
                   Visit Official Website / Repository

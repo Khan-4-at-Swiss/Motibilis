@@ -1,3 +1,5 @@
+import { getAssetUrl } from '@/lib/assets';
+
 export interface Product {
   id: number;
   categoryId: number;
@@ -10,9 +12,6 @@ export interface Product {
   screenshots: string[];
   sortOrder: number;
 }
-
-// Automatically handles local vs GitHub Pages base path
-const base = import.meta.env.BASE_URL || '/';
 
 export const products: Product[] = [
   // ─── Academic Tools ───
@@ -34,7 +33,7 @@ export const products: Product[] = [
       "Mobile responsive design",
     ],
     websiteUrl: "https://khan-4-at-swiss.github.io/Bahria-University-CGPA-GPA-calculator/",
-    screenshots: [`${base}images/gpa.jpg`],
+    screenshots: [getAssetUrl("images/gpa.jpg")],
     sortOrder: 1,
   },
   {
@@ -55,7 +54,7 @@ export const products: Product[] = [
       "100% privacy guaranteed",
     ],
     websiteUrl: "https://motibilis-gladius-xtreme.netlify.app/",
-    screenshots: [`${base}images/zipper.jpg`],
+    screenshots: [getAssetUrl("images/zipper.jpg"), getAssetUrl("images/zipper.png")],
     sortOrder: 2,
   },
   {
@@ -78,7 +77,7 @@ export const products: Product[] = [
       "And much more!",
     ],
     websiteUrl: "https://motibilis-pdf-infinitevoid.netlify.app/",
-    screenshots: [`${base}images/pdf.png`],
+    screenshots: [getAssetUrl("images/pdf.png")],
     sortOrder: 3,
   },
 
@@ -103,7 +102,7 @@ export const products: Product[] = [
       "REST & GraphQL API for integrations",
     ],
     websiteUrl: "https://motibilis-teardown.netlify.app/",
-    screenshots: [`${base}images/laptop.jpg`],
+    screenshots: [getAssetUrl("images/laptop.jpg")],
     sortOrder: 1,
   },
   {
@@ -122,7 +121,7 @@ export const products: Product[] = [
       "Secure Serverless Proxy",
     ],
     websiteUrl: "https://gotcha-xtreme-motibilis-x275.netlify.app/",
-    screenshots: [`${base}images/AI.jpg`],
+    screenshots: [getAssetUrl("images/AI.jpg")],
     sortOrder: 2,
   },
   {
@@ -144,7 +143,7 @@ export const products: Product[] = [
       "Custom report generator",
     ],
     websiteUrl: "https://github.com/AFAQXMOTIBILIS",
-    screenshots: [`${base}images/motibilis.jpg`],
+    screenshots: [getAssetUrl("images/motibilis.jpg")],
     sortOrder: 3,
   },
 
@@ -170,7 +169,7 @@ export const products: Product[] = [
       "Adaptive Layout: Supports both mobile portrait and tablet landscape (split-panel) views."
     ],
     websiteUrl: "https://khan-4-at-swiss.github.io/motibilis-ludo/",
-    screenshots: [`${base}images/ludo.jpg`],
+    screenshots: [getAssetUrl("images/ludo.jpg")],
     sortOrder: 1,
   },
   {
@@ -189,7 +188,7 @@ export const products: Product[] = [
       "Interactive Landing Page: Cinematic scroll-synced video and direct APK download delivery.",
     ],
     websiteUrl: "https://github.com/AFAQXMOTIBILIS",
-    screenshots: [`${base}images/ludoo.jpeg`],
+    screenshots: [getAssetUrl("images/ludoo.jpeg")],
     sortOrder: 2,
   },
   {
@@ -209,7 +208,7 @@ export const products: Product[] = [
       "Whack-a-Mole (Tap Frenzy): 30-second rapid challenge with animated moles and score counters, Simon Rhythm: 4-pad sequence memory with matching musical notes (C4, E4, G4, C5), Flappy Flight: Tap to glide physics, obstacle pipes, and score gates",
     ],
     websiteUrl: "https://drive.google.com/uc?export=download&id=1dGpr7nsnNuDTFYRSwJzjbUAW1cH7Ek-b",
-    screenshots: [`${base}images/kimmm.jpg`],
+    screenshots: [getAssetUrl("images/kimmm.jpg")],
     sortOrder: 3,
   },
 ];
@@ -226,4 +225,4 @@ export function getProductsByCategory(categoryId: number): Product[] {
 
 export function getComingSoonProducts(): Product[] {
   return products.filter((p) => p.status === "coming_soon");
-}
+}

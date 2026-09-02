@@ -1,14 +1,18 @@
 import { useEffect, useState, useRef } from 'react'
-import { useNavigate } from 'react-router'
-
-// Automatically handles local vs GitHub Pages base path
-const base = import.meta.env.BASE_URL || '/'
+import { useNavigate } from 'react-router-dom'
+import { getAssetUrl } from '@/lib/assets'
+import { ArrowRight } from 'lucide-react'
 
 export default function Intro() {
   const navigate = useNavigate()
   const [phase, setPhase] = useState<'pop' | 'loading' | 'done'>('pop')
   const swordRef = useRef<HTMLImageElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
+
+  const handleSkip = () => {
+    setPhase('done')
+    navigate('/home')
+  }
 
   useEffect(() => {
     // Sword popup animation
@@ -26,16 +30,24 @@ export default function Intro() {
       navigate('/home')
     }, 5000)
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        handleSkip()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+
     return () => {
       clearTimeout(swordTimer)
       clearTimeout(loadingTimer)
       clearTimeout(navTimer)
+      window.removeEventListener('keydown', handleKeyDown)
     }
   }, [navigate])
 
   return (
     <div
-      className={`fixed inset-0 bg-black flex flex-col items-center justify-center z-[100] transition-opacity duration-500 ${
+      className={`fixed inset-0 bg-black flex flex-col items-center justify-center z-[100] transition-opacity duration-500 select-none ${
         phase === 'done' ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
@@ -52,7 +64,7 @@ export default function Intro() {
         <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-2 border-[#D4AF37]/40 shadow-2xl p-1 bg-gradient-to-br from-[#D4AF37]/20 to-black">
           <img
             ref={swordRef}
-            src={`${base}images/motibilis.jpg`}
+            src={getAssetUrl('images/motibilis.jpg')}
             alt="Motibilis"
             className="w-full h-full object-cover rounded-full drop-shadow-2xl"
             style={{
@@ -91,9 +103,10 @@ export default function Intro() {
             ref={barRef}
             className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#D4AF37] via-[#E5C048] to-[#D4AF37] origin-left"
             style={{
-              animation: phase === 'loading' || phase === 'done'
-                ? 'loadingBar 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards'
-                : 'none',
+              animation:
+                phase === 'loading' || phase === 'done'
+                  ? 'loadingBar 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards'
+                  : 'none',
             }}
           />
         </div>
@@ -101,6 +114,15 @@ export default function Intro() {
           {phase === 'done' ? 'Ready' : 'Loading Experience'}
         </p>
       </div>
+
+      {/* Skip Button */}
+      <button
+        onClick={handleSkip}
+        className="absolute bottom-8 right-8 z-20 flex items-center gap-2 px-4 py-2 bg-black/60 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/30 hover:border-[#D4AF37] text-xs font-cinzel text-[#D4AF37] rounded-full transition-all duration-300 backdrop-blur-md cursor-pointer group"
+      >
+        <span>Skip Intro</span>
+        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+      </button>
 
       {/* Sparkle particles */}
       {phase !== 'pop' && (

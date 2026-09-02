@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router'
+import { Routes, Route } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 
