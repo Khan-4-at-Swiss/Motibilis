@@ -9,4 +9,4 @@ A premium, fully responsive static web showcase for academic tools, professional
 - **Animations**: Canvas 3D Starfield + CSS Keyframes
 - **Security**: Web Crypto API (PBKDF2 Key Derivation)
 
-*Created by Shaikh — Motibilis Software Showcase*
+*Created by Shaikh Afaq Ahmad - Motibilis Software Showcase*
